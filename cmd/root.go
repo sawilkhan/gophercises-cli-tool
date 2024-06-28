@@ -19,7 +19,6 @@ var rootCmd = &cobra.Command{
 
 func Execute(){
 	if err := rootCmd.Execute(); err != nil{
-		fmt.Println("in Execute() function")
 		log.Fatal(err)
 	}
 }
@@ -32,5 +31,4 @@ func initDB() {
     if err := db.InitDB(); err != nil {
         log.Fatalf("Could not initialize database: %v", err)
     }
-	fmt.Println("db initialized")
 }

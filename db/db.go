@@ -2,6 +2,7 @@ package db
 
 import (
 	"encoding/binary"
+	"log"
 
 	"go.etcd.io/bbolt"
 )
@@ -17,11 +18,10 @@ type Task struct{
 
 func InitDB() error{
 	var err error
-	db, err := bbolt.Open("tasks.db", 0600, nil)
+	db, err = bbolt.Open("tasks.db", 0600, nil)
 	if err != nil {
-        return err
+        log.Fatal("could not open db connection")
     }
-
 	return db.Update(func(tx *bbolt.Tx) error {
         _, err := tx.CreateBucketIfNotExists([]byte(taskBucket))
         return err
@@ -30,8 +30,7 @@ func InitDB() error{
 
 func AddTask(task Task) error{
 	return db.Update(func(tx *bbolt.Tx) error {
-		b := tx.Bucket([]byte(taskBucket))
-
+		b := tx.Bucket([]byte(taskBucket))		
 		id, _ := b.NextSequence()
 		task.ID = int(id)
 		buf := make([]byte, binary.MaxVarintLen64)
@@ -54,4 +53,13 @@ func ListTasks() ([]Task, error) {
         })
     })
     return tasks, err
+}
+
+func DeleteTasks(taskId int) error{
+	return db.Update(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(taskBucket))
+		buf := make([]byte, binary.MaxVarintLen64)
+		binary.PutVarint(buf, int64(taskId))
+		return b.Delete(buf)
+	})
 }
